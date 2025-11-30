@@ -2,7 +2,6 @@ package com.example.domain.models
 
 import kotlinx.serialization.Serializable
 
-
 @Serializable
 data class Artist(val id: String, val name: String, val genre: String?)
 
@@ -37,4 +36,19 @@ data class CreateAlbumRequest(val title: String, val releaseYear: Int, val artis
 data class CreateTrackRequest(val title: String, val duration: Int, val albumId: String)
 
 @Serializable
-data class UpdateTrackRequest(val title: String?, val duration: Int?)
+data class UpdateArtistRequest(
+    val name: String? = null,
+    val genre: String? = null
+)
+
+@Serializable
+data class UpdateAlbumRequest(
+    val title: String? = null,
+    val releaseYear: Int? = null
+)
+
+@Serializable
+data class UpdateTrackRequest(
+    val title: String? = null,
+    val duration: Int? = null
+)

@@ -84,6 +84,11 @@ class ExposedMusicRepository : MusicRepository {
         )
     }
 
+    override suspend fun getAllArtists(): List<Artist> = dbQuery {
+        Artistas.selectAll().map { row ->
+            Artist(row[Artistas.id].toString(), row[Artistas.name], row[Artistas.genre])
+        }
+    }
 
     override suspend fun createArtist(data: CreateArtistRequest): String = dbQuery {
         val insertStatement = Artistas.insert {
@@ -93,9 +98,33 @@ class ExposedMusicRepository : MusicRepository {
         insertStatement[Artistas.id].toString()
     }
 
+    override suspend fun updateArtist(id: String, data: UpdateArtistRequest): Boolean = dbQuery {
+        val uuid = UUID.fromString(id)
+        Artistas.update({ Artistas.id eq uuid }) {
+            if (data.name != null) it[name] = data.name
+            if (data.genre != null) it[genre] = data.genre
+        } > 0
+    }
+
     override suspend fun deleteArtist(id: String): Boolean = dbQuery {
         val uuid = UUID.fromString(id)
         Artistas.deleteWhere { Artistas.id eq uuid } > 0
+    }
+
+    override suspend fun getAllAlbums(): List<Album> = dbQuery {
+        (Albumes innerJoin Artistas).selectAll().map { row ->
+            Album(row[Albumes.id].toString(), row[Albumes.title], row[Artistas.name])
+        }
+    }
+
+    override suspend fun getAlbumById(id: String): Album? = dbQuery {
+        val uuid = UUID.fromString(id)
+        (Albumes innerJoin Artistas)
+            .select { Albumes.id eq uuid }
+            .map { row ->
+                Album(row[Albumes.id].toString(), row[Albumes.title], row[Artistas.name])
+            }
+            .singleOrNull()
     }
 
     override suspend fun createAlbum(data: CreateAlbumRequest): String = dbQuery {
@@ -108,9 +137,40 @@ class ExposedMusicRepository : MusicRepository {
         insertStatement[Albumes.id].toString()
     }
 
+    override suspend fun updateAlbum(id: String, data: UpdateAlbumRequest): Boolean = dbQuery {
+        val uuid = UUID.fromString(id)
+        Albumes.update({ Albumes.id eq uuid }) {
+            if (data.title != null) it[title] = data.title
+            if (data.releaseYear != null) it[releaseYear] = data.releaseYear
+        } > 0
+    }
+
     override suspend fun deleteAlbum(id: String): Boolean = dbQuery {
         val uuid = UUID.fromString(id)
         Albumes.deleteWhere { Albumes.id eq uuid } > 0
+    }
+
+    override suspend fun getAllTracks(): List<Track> = dbQuery {
+        Tracks.selectAll().map { row ->
+            Track(
+                id = row[Tracks.id].toString(),
+                title = row[Tracks.title],
+                duration = row[Tracks.duration]
+            )
+        }
+    }
+
+    override suspend fun getTrackById(id: String): Track? = dbQuery {
+        val uuid = UUID.fromString(id)
+        Tracks.select { Tracks.id eq uuid }
+            .map { row ->
+                Track(
+                    id = row[Tracks.id].toString(),
+                    title = row[Tracks.title],
+                    duration = row[Tracks.duration]
+                )
+            }
+            .singleOrNull()
     }
 
     override suspend fun createTrack(data: CreateTrackRequest): String = dbQuery {

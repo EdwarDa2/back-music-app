@@ -16,4 +16,13 @@ interface MusicRepository {
     suspend fun createTrack(data: CreateTrackRequest): String
     suspend fun updateTrack(id: String, data: UpdateTrackRequest): Boolean
     suspend fun deleteTrack(id: String): Boolean
+    suspend fun getAllArtists(): List<Artist>
+    suspend fun updateArtist(id: String, data: UpdateArtistRequest): Boolean
+
+    suspend fun getAllAlbums(): List<Album>
+    suspend fun getAlbumById(id: String): Album?
+    suspend fun updateAlbum(id: String, data: UpdateAlbumRequest): Boolean
+
+    suspend fun getAllTracks(): List<Track>
+    suspend fun getTrackById(id: String): Track?
 }
