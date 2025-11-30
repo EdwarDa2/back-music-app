@@ -32,8 +32,6 @@ object Tracks : UUIDTable("tracks") {
 
 
     val albumId = reference("album_id", Albumes)
-
-    val previewUrl = varchar("preview_url", 255).nullable()
     val createdAt = datetime("created_at").clientDefault { LocalDateTime.now() }
     val updatedAt = datetime("updated_at").clientDefault { LocalDateTime.now() }
 }
@@ -50,7 +48,21 @@ data class TrackDTO(
     val id: String,
     val title: String,
     val duration: Int,
-    val previewUrl: String?,
     val artist: String? = null,
     val cover: String? = null
 )
+@Serializable
+data class CreateArtistRequest(val name: String, val genre: String)
+
+@Serializable
+data class CreateAlbumRequest(val title: String, val releaseYear: Int, val artistId: String)
+
+@Serializable
+data class CreateTrackRequest(
+    val title: String,
+    val duration: Int,
+    val albumId: String,
+)
+
+@Serializable
+data class UpdateTrackRequest(val title: String?, val duration: Int?)
