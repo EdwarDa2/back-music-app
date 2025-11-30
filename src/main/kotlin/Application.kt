@@ -15,13 +15,12 @@ import com.example.services.MusicRepository
 import com.example.models.*
 
 fun main() {
-    embeddedServer(CIO, port = 8080, host = "0.0.0.0", module = Application::module)
+    embeddedServer(CIO, port = 3000, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
 }
 
 fun Application.module() {
     DatabaseFactory.init()
-
     val repository = MusicRepository()
 
     install(ContentNegotiation) { json() }
@@ -33,91 +32,75 @@ fun Application.module() {
         allowMethod(HttpMethod.Delete)
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
-        allowHost("localhost:4200", schemes = listOf("http", "https"))
         anyHost()
     }
 
     routing {
-        get("/") {
-            call.respondText("API Ktor MusicApp Lista 🚀")
+
+        get("/") { call.respondText("Exito de api") }
+
+        route("/api/artistas") {
+            post {
+                try {
+                    val req = call.receive<CreateArtistRequest>()
+                    val newId = repository.createArtist(req)
+                    call.respond(HttpStatusCode.Created, mapOf("id" to newId))
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.BadRequest, e.localizedMessage)
+                }
+            }
+
+            get("/{id}") {
+                val id = call.parameters["id"]
+                if (id != null) {
+                    try {
+                        val result = repository.getArtistWithAlbums(id)
+                        call.respond(result)
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.NotFound)
+                    }
+                }
+            }
         }
 
-        get("/search") {
+        route("/api/albumes") {
+            // POST (Crear)
+            post {
+                try {
+                    val req = call.receive<CreateAlbumRequest>()
+                    val newId = repository.createAlbum(req)
+                    call.respond(HttpStatusCode.Created, mapOf("id" to newId))
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.BadRequest, e.localizedMessage)
+                }
+            }
+        }
+
+        route("/api/tracks") {
+            // POST (Crear)
+            post {
+                try {
+                    val req = call.receive<CreateTrackRequest>()
+                    val newId = repository.createTrack(req)
+                    call.respond(HttpStatusCode.Created, mapOf("id" to newId))
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.BadRequest, e.localizedMessage)
+                }
+            }
+        }
+
+        get("/api/search") {
             val query = call.request.queryParameters["q"] ?: ""
             val result = repository.search(query)
             call.respond(result)
         }
 
-        get("/albumes/{id}") {
+        get("/api/album/{id}") {
             val id = call.parameters["id"]
             if (id != null) {
-                try {
-                    val result = repository.getAlbumDetails(id)
-                    call.respond(result)
-                } catch (e: Exception) {
-                    call.respond(HttpStatusCode.NotFound, "Álbum no encontrado")
-                }
+                val result = repository.getAlbumDetails(id)
+                call.respond(result)
             }
-        }
-
-        post("/artistas") {
-            try {
-                val req = call.receive<CreateArtistRequest>()
-                val newId = repository.createArtist(req)
-                call.respond(HttpStatusCode.Created, mapOf("id" to newId))
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.BadRequest, "Error al crear artista: ${e.localizedMessage}")
-            }
-        }
-
-        delete("/artistas/{id}") {
-            val id = call.parameters["id"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
-            if (repository.deleteArtist(id)) call.respond(HttpStatusCode.OK, "Artista eliminado")
-            else call.respond(HttpStatusCode.NotFound)
-        }
-
-        post("/albumes") {
-            try {
-                val req = call.receive<CreateAlbumRequest>()
-                val newId = repository.createAlbum(req)
-                call.respond(HttpStatusCode.Created, mapOf("id" to newId))
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.BadRequest, "Error al crear álbum: ${e.localizedMessage}")
-            }
-        }
-
-        delete("/albumes/{id}") {
-            val id = call.parameters["id"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
-            if (repository.deleteAlbum(id)) call.respond(HttpStatusCode.OK, "Álbum eliminado")
-            else call.respond(HttpStatusCode.NotFound)
-        }
-
-        // --- TRACKS ---
-        post("/tracks") {
-            try {
-                val req = call.receive<CreateTrackRequest>()
-                val newId = repository.createTrack(req)
-                call.respond(HttpStatusCode.Created, mapOf("id" to newId))
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.BadRequest, "Error al crear track: ${e.localizedMessage}")
-            }
-        }
-
-        put("/tracks/{id}") {
-            val id = call.parameters["id"] ?: return@put call.respond(HttpStatusCode.BadRequest)
-            try {
-                val req = call.receive<UpdateTrackRequest>()
-                if (repository.updateTrack(id, req)) call.respond(HttpStatusCode.OK, "Track actualizado")
-                else call.respond(HttpStatusCode.NotFound)
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.BadRequest, "Datos inválidos")
-            }
-        }
-
-        delete("/tracks/{id}") {
-            val id = call.parameters["id"] ?: return@delete call.respond(HttpStatusCode.BadRequest)
-            if (repository.deleteTrack(id)) call.respond(HttpStatusCode.OK, "Track eliminado")
-            else call.respond(HttpStatusCode.NotFound)
         }
     }
 }

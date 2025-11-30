@@ -120,4 +120,25 @@ class MusicRepository {
         val uuid = java.util.UUID.fromString(id)
         Tracks.deleteWhere { Tracks.id eq uuid } > 0
     }
+
+    suspend fun getArtistWithAlbums(artistId: String): Map<String, Any?> = dbQuery {
+        val uuid = java.util.UUID.fromString(artistId)
+
+        val artistRow = Artistas.select { Artistas.id eq uuid }.single()
+
+        val albums = Albumes.select { Albumes.artistId eq uuid }.map { row ->
+            AlbumDTO(
+                id = row[Albumes.id].toString(),
+                title = row[Albumes.title],
+                artist = artistRow[Artistas.name]
+            )
+        }
+
+        mapOf(
+            "id" to artistRow[Artistas.id].toString(),
+            "name" to artistRow[Artistas.name],
+            "genre" to artistRow[Artistas.genre],
+            "albums" to albums
+        )
+    }
 }
