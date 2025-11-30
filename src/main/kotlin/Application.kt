@@ -57,7 +57,8 @@ fun Application.module() {
                         val result = repository.getArtistWithAlbums(id)
                         call.respond(result)
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.NotFound)
+                        e.printStackTrace()
+                        call.respond(HttpStatusCode.InternalServerError, e.localizedMessage)
                     }
                 }
             }

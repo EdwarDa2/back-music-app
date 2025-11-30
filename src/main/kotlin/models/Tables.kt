@@ -66,3 +66,11 @@ data class CreateTrackRequest(
 
 @Serializable
 data class UpdateTrackRequest(val title: String?, val duration: Int?)
+
+@Serializable
+data class ArtistWithAlbumsDTO(
+    val id: String,
+    val name: String,
+    val genre: String?,
+    val albums: List<AlbumDTO>
+)
