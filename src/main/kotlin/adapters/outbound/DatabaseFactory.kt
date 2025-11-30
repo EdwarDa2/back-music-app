@@ -1,9 +1,11 @@
-package com.example.database
+package com.example.adapters.outbound
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 object DatabaseFactory {
     fun init() {
@@ -23,7 +25,7 @@ object DatabaseFactory {
     }
 
     suspend fun <T> dbQuery(block: () -> T): T =
-        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        withContext(Dispatchers.IO) {
             transaction { block() }
         }
 }
