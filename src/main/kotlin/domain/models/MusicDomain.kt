@@ -52,3 +52,18 @@ data class UpdateTrackRequest(
     val title: String? = null,
     val duration: Int? = null
 )
+@Serializable
+data class SearchResponse(
+    val tracks: TrackListWrapper,
+    val artists: ArtistListWrapper,
+    val albums: AlbumListWrapper
+)
+
+@Serializable
+data class TrackListWrapper(val items: List<Track>)
+
+@Serializable
+data class ArtistListWrapper(val items: List<Artist>)
+
+@Serializable
+data class AlbumListWrapper(val items: List<Album>)

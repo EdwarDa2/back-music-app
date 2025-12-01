@@ -9,9 +9,14 @@ import java.util.UUID
 
 class ExposedMusicRepository : MusicRepository {
 
-    override suspend fun search(query: String): Map<String, Any> = dbQuery {
+    override suspend fun search(query: String): SearchResponse = dbQuery {
+        val keyword = "%${query.lowercase()}%"
+
         val tracks = (Tracks innerJoin Albumes innerJoin Artistas)
-            .select { Tracks.title.lowerCase() like "%${query.lowercase()}%" }
+            .select {
+                (Tracks.title.lowerCase() like keyword) or
+                        (Artistas.name.lowerCase() like keyword)
+            }
             .limit(5)
             .map { row ->
                 Track(
@@ -24,23 +29,26 @@ class ExposedMusicRepository : MusicRepository {
             }
 
         val artists = Artistas
-            .select { Artistas.name.lowerCase() like "%${query.lowercase()}%" }
+            .select { Artistas.name.lowerCase() like keyword }
             .limit(5)
             .map { row ->
                 Artist(row[Artistas.id].toString(), row[Artistas.name], row[Artistas.genre])
             }
 
         val albums = (Albumes innerJoin Artistas)
-            .select { Albumes.title.lowerCase() like "%${query.lowercase()}%" }
+            .select {
+                (Albumes.title.lowerCase() like keyword) or
+                        (Artistas.name.lowerCase() like keyword)
+            }
             .limit(5)
             .map { row ->
                 Album(row[Albumes.id].toString(), row[Albumes.title], row[Artistas.name])
             }
 
-        mapOf(
-            "tracks" to mapOf("items" to tracks),
-            "artists" to mapOf("items" to artists),
-            "albums" to mapOf("items" to albums)
+        SearchResponse(
+            tracks = TrackListWrapper(tracks),
+            artists = ArtistListWrapper(artists),
+            albums = AlbumListWrapper(albums)
         )
     }
 

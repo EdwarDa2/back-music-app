@@ -3,7 +3,7 @@ package com.example.domain.ports
 import com.example.domain.models.*
 
 interface MusicRepository {
-    suspend fun search(query: String): Map<String, Any>
+    suspend fun search(query: String): SearchResponse
     suspend fun getAlbumDetails(albumId: String): Map<String, Any>
     suspend fun getArtistWithAlbums(artistId: String): ArtistWithAlbums
 
